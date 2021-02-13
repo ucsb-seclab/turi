@@ -8,6 +8,6 @@ setup(
     version='1.0',
     description='Turi',
     packages=packages,
-    include_package_data=True,
-    install_requires=['networkx', 'nose']
+    include_package_data=True
 )
+

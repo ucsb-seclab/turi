@@ -373,9 +373,9 @@ class BackwardSlicer:
 
         for stmt in statements:
             # handle the different use scenarios
+
             if is_assign(stmt) and is_invoke(stmt.right_op):
                 invoke_expr = stmt.right_op
-
                 if hasattr(invoke_expr, 'base'):
                     # --- use object method
                     # --- e.g., new = var.method()
@@ -414,25 +414,14 @@ class BackwardSlicer:
                 elif is_instance_field_ref(right_op):
                     # --- assignment from obj field
                     # --- e.g., new = obj.var
-                    if hasattr(right_op, 'base'):
-                        if hasattr(right_op.base, 'name'):
-                            var_used.add(right_op.base.name)
                     var_used.add(right_op.field[0])
 
                 elif is_phi_expr(right_op):
                     # --- assignment from Phi expression
                     # --- e.g., new = Phi(x, var, y)
-                    for value, _ in right_op.values:
+                    for value in right_op.values:
                         if hasattr(value, 'name'):
                             var_used.add(value.name)
-                elif is_static_field_ref(right_op):
-                    if hasattr(right_op, 'field'):
-                        var_used.add(right_op.field)
-            elif is_identity(stmt):
-                # --- if 'this' is in the backward slice, add the type of 'this'
-                if hasattr(stmt, 'right_op'):
-                    if hasattr(stmt.right_op, 'type'):
-                        var_used.add(stmt.right_op.type)
 
             # TODO handle this case in the get_set
             # "enter" in the method
@@ -508,15 +497,20 @@ class BackwardSlicer:
                 if hasattr(stmt.left_op, 'name') and stmt.left_op.name == var:
                     res.append(stmt)
 
-                elif is_array_ref(stmt.left_op) or is_instance_field_ref(stmt.left_op):
+                elif is_instance_field_ref(stmt.left_op):
+                    # TODO you should consider the field's class!
+                    # fields with same name (from diff objs) are tainted
+                    # TODO
+                    # if stmt.left_op.field[0] == var:
+                    #     res.append(stmt)
+                    pass
+
+                elif is_array_ref(stmt.left_op):
                     if hasattr(stmt.left_op, 'base'):
                         base = stmt.left_op.base
                         if hasattr(base, 'name') and base.name == var:
                             res.append(stmt)
-            # we need this for 'this'
-            if is_identity(stmt):
-                if hasattr(stmt.left_op, 'name') and stmt.left_op.name == var:
-                    res.append(stmt)
+
         return res
 
     def get_set(self, block, stmts):

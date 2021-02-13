@@ -94,12 +94,6 @@ def is_instance_field_ref(stmt):
 
     return False
 
-def is_static_field_ref(stmt):
-    if 'StaticFieldRef' in str(type(stmt)):
-        return True
-
-    return False
-
 
 def is_phi_expr(stmt):
     if 'SootPhiExpr' in str(type(stmt)):

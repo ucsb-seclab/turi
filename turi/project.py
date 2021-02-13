@@ -2,8 +2,7 @@ import os
 import pickle
 import logging
 from pysoot.lifter import Lifter
-
-from .cfg import CFGFull, get_method_CFGs
+from .cfg import CFGFull
 from .hierarchy import Hierarchy
 from .backward_slicer import BackwardSlicer
 from .forward_slicer import ForwardSlicer
@@ -31,6 +30,7 @@ class Project:
 
         # initialize empty data structure
         self._lifter = lifter
+        self._classes = {}
         self._methods = {}
         self._blocks_to_methods = {}
         self._stmts_to_blocks = {}
@@ -38,7 +38,6 @@ class Project:
         self._hierarchy = None
         self._cfg_full = None
         self._cfg_full_ret_edges = None
-        self._cfg_methods = None
         self._callgraph = None
 
         self.setup()
@@ -97,7 +96,7 @@ class Project:
                 with open(pickled_path, 'wb') as fp:
                     pickle.dump(self._classes, fp, protocol=2)
 
-        for _, cls in self._classes.items():
+        for cls_name, cls in self._classes.items():
             for method in cls.methods:
                 method_key = get_method_key(method)
                 self._methods[method_key] = method
@@ -122,13 +121,6 @@ class Project:
             self._cfg_full_ret_edges = CFGFull(self, ret_edges=True)
 
         return self._cfg_full_ret_edges
-
-    def cfgmethods(self, instantiate=False):
-        if self._cfg_methods is None or instantiate:
-            log.info('Instantiating CFG Methods')
-            self._cfg_methods = get_method_CFGs(self.classes)
-
-        return self._cfg_methods
 
     def hierarchy(self, instantiate=False):
         if self._hierarchy is None or instantiate:

@@ -1,8 +1,6 @@
 import networkx
 import logging
 
-from collections import defaultdict
-
 from .statements import *
 from .utils import walk_all_blocks
 from .hierarchy import NoConcreteDispatch
@@ -20,7 +18,6 @@ class CallGraph:
     def __init__(self, project):
         self.project = project
         self.graph = networkx.DiGraph()
-        self._call_sites = defaultdict(lambda: defaultdict(list))
         self.build()
 
     def build(self):
@@ -50,7 +47,7 @@ class CallGraph:
             method = self.project.methods[(cls_name, method_name, method_params)]
         except KeyError as e:
             # TODO should we add a dummy node for "external" methods?
-            log.warning('Cannot handle call to external method')
+            log.warning("Cannot handle call to external method")
             return
 
         try:
@@ -63,10 +60,6 @@ class CallGraph:
             if target.class_name in self.project.classes:
                 self.graph.add_node(target)
                 self.graph.add_edge(container_m, target)
-                self._call_sites[container_m][target].append(invoke_expr)
-
-    def get_call_sites(self, method, target):
-        return self._call_sites[method][target]
 
     def next(self, method):
         return self.graph.successors(method)

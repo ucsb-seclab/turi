@@ -172,20 +172,6 @@ class ForwardSlicer:
                         if hasattr(stmt.left_op, 'name') and stmt.left_op.name == in_var_name:
                             res.append((block, stmt.left_op.name))
 
-        elif self._input['type'] == 'all_methods_var':
-            in_m_name = self._input['method_name']
-            in_var_name = self._input['var_name']
-
-            for cls in self.project.classes.values():
-                for method in cls.methods:
-                    if method.name != in_m_name:
-                        continue
-
-                    for block in method.blocks:
-                        for stmt in block.statements:
-                            if is_assign(stmt) or is_identity(stmt):
-                                if hasattr(stmt.left_op, 'name') and stmt.left_op.name == in_var_name:
-                                    res.append((block, stmt.left_op.name))
         # else:
         #     if self._input['class_name'] not in self.project.classes:
         #         return []
@@ -271,7 +257,7 @@ class ForwardSlicer:
                     elif is_phi_expr(right_op):
                         # --- assignment from Phi expression
                         # --- e.g., new = Phi(x, var, y)
-                        for value, _ in right_op.values:
+                        for value in right_op.values:
                             if hasattr(value, 'name'):
                                 if value.name == var:
                                     assigns.append(stmt)
