@@ -508,11 +508,19 @@ class BackwardSlicer:
                 if hasattr(stmt.left_op, 'name') and stmt.left_op.name == var:
                     res.append(stmt)
 
-                elif is_array_ref(stmt.left_op) or is_instance_field_ref(stmt.left_op):
+                elif is_instance_field_ref(stmt.left_op):
+                    # TODO you should consider the field's class!
+                    # this is currently imprecise:
+                    #   fields with same name (from diff objs) are tainted
+                    if stmt.left_op.field[0] == var:
+                        res.append(stmt)
+
+                elif is_array_ref(stmt.left_op):
                     if hasattr(stmt.left_op, 'base'):
                         base = stmt.left_op.base
                         if hasattr(base, 'name') and base.name == var:
                             res.append(stmt)
+
             # we need this for 'this'
             if is_identity(stmt):
                 if hasattr(stmt.left_op, 'name') and stmt.left_op.name == var:
